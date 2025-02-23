@@ -38,7 +38,7 @@ export default function SignIn() {
         throw new Error('Error signing in the user');
       }
       const token = response.data.token;
-      localStorage.setItem("token", token);
+      localStorage.setItem("mathtor-token", token);
       router.push("/dashboard");
     } catch (error: any) {
       toast.error("Error signing in the user, please try again.", {

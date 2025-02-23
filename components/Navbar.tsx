@@ -37,7 +37,7 @@ export default function Navbar() {
   
   return (
     <nav className="px-8 py-6 flex flex-row items-center justify-between border border-gray-200">
-      <div className="flex items-center text-gray-700 font-bold text-3xl">
+      <div className="flex items-center text-gray-700 font-bold text-3xl" onClick={() => router.push('/dashboard')}>
         MathTor
       </div>
       <DropdownMenu>

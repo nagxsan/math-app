@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { verifyToken } from "@/lib/auth";
 
 export function middleware(req: NextRequest) {
-  const nonProtectedPaths = ["/api/sign-in", "/sign-in"];
+  const nonProtectedPaths = ["/api/sign-in", "/sign-in", "/api/sign-up", "/sign-up"];
 
   const notProtectedRoute = nonProtectedPaths.some((path) => req.nextUrl.pathname.startsWith(path));
 
@@ -19,6 +19,7 @@ export function middleware(req: NextRequest) {
 
   const token = authHeader.split(" ")[1];
   const user = verifyToken(token);
+  console.log(user);
 
   if (!user || typeof user === "string") {
     return NextResponse.json({ message: "Invalid token" }, { status: 401 });

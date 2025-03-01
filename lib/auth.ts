@@ -4,7 +4,8 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 
 export function verifyToken(token: string) {
   try {
-    return jwt.verify(token, JWT_SECRET)
+    const res = jwt.verify(token, JWT_SECRET);
+    return res;
   } catch (error) {
     return null
   }

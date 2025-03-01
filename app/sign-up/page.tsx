@@ -33,7 +33,7 @@ export default function SignUp() {
       const response = await axios.post('/api/sign-up', {
         email,
         password,
-        role: 'admin',
+        role: 'student',
       });
       if (!response) {
         throw new Error('Error signing in the user');

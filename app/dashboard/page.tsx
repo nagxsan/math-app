@@ -19,6 +19,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 import {Button} from "@/components/ui/button";
 import axios from "axios";
@@ -38,6 +40,17 @@ export default function Dashboard() {
   const [quiz, setQuiz] = useState<any[]>([]);
 
   const [quizzes, setQuizzes] = useState<any[]>([]);
+
+  const [selectedQuiz, setSelectedQuiz] = useState<number>();
+  const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
+  const [quizScore, setQuizScore] = useState<number | null>(null);
+
+  const handleOptionChange = (questionId: string, selectedValue: string) => {
+    setQuizAnswers((prev) => ({
+      ...prev,
+      [questionId]: selectedValue,
+    }));
+  };
 
   const token = localStorage.getItem('mathtor-token');
   if (!token) {
@@ -130,10 +143,27 @@ export default function Dashboard() {
       setQuiz([]);
     }
   }
+
+  function handleQuizSubmit() {
+    if (!selectedQuiz) return;
+    console.log({quizzes});
+    const quiz = quizzes[selectedQuiz].quiz;
+    console.log({quiz});
+    let score = 0;
+    for (const key of Object.keys(quizAnswers)) {
+      const questionIdx = Number(key.split('.')[0])
+      console.log({questionIdx})
+      console.log({question: quiz[questionIdx]});
+      console.log(Number(quizAnswers[key]) === Number(quiz[questionIdx]?.correctOption))
+      score += (Number(quizAnswers[key]) === Number(quiz[questionIdx]?.correctOption) ? 1 : 0)
+    }
+
+    setQuizScore(score)
+  }
   return (
-    <div className="flex flex-col gap-10">
-      <div className="p-20 flex flex-wrap gap-10">
-        {data?.role === "admin" && (
+    data?.role === "admin" ? (
+      <div className="flex flex-col gap-10">
+        <div className="p-10 flex flex-wrap gap-10">
           <Dialog>
             <DialogTrigger className="px-4 py-3 bg-black text-white rounded-lg" onClick={getStudentsList}>
               View students
@@ -156,8 +186,6 @@ export default function Dashboard() {
               </DialogHeader>
             </DialogContent>
           </Dialog>
-        )}
-        {data?.role === "admin" && (
           <Dialog>
             <DialogTrigger className="px-4 py-3 bg-black text-white rounded-lg">
               Add quiz
@@ -212,15 +240,58 @@ export default function Dashboard() {
               </DialogHeader>
             </DialogContent>
           </Dialog>
-        )}
+        </div>
+        <Separator />
+        <div className="flex flex-col gap-10 p-10">
+          <div>Quizzes</div>
+          <div className="flex flex-wrap gap-10">
+            {quizzes && quizzes.map((quiz, idx) => (
+              <Dialog key={idx}>
+                <DialogTrigger className="px-4 py-3 bg-black text-white rounded-lg">
+                  Quiz {idx + 1}
+                </DialogTrigger>
+                <DialogContent className="max-h-[650px] overflow-y-scroll">
+                  <DialogHeader>
+                    <DialogTitle>Quiz</DialogTitle>
+                    <DialogDescription>
+                      {quiz && quiz.quiz && quiz.quiz.map((question: any, idx: any) => (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>
+                              {`Question ${idx + 1}`}
+                            </CardTitle>
+                            <CardDescription>
+                              {question.question}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="flex flex-col gap-y-5">
+                              <div>Options:</div>
+                              {question.options.map((option: any, idx: any) => (
+                                <div key={idx}>
+                                  {option.number}: {option.value}
+                                </div>
+                              ))}
+                              <div>Correct option: {question.correctOption}</div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </DialogDescription>
+                  </DialogHeader>
+                </DialogContent>
+              </Dialog>
+            ))}
+          </div>
+        </div>
       </div>
-      <Separator />
+    ) : (
       <div className="flex flex-col gap-10 p-10">
         <div>Quizzes</div>
         <div className="flex flex-wrap gap-10">
           {quizzes && quizzes.map((quiz, idx) => (
             <Dialog key={idx}>
-              <DialogTrigger className="px-4 py-3 bg-black text-white rounded-lg">
+              <DialogTrigger className="px-4 py-3 bg-black text-white rounded-lg" onClick={() => setSelectedQuiz(idx)}>
                 Quiz {idx + 1}
               </DialogTrigger>
               <DialogContent className="max-h-[650px] overflow-y-scroll">
@@ -240,23 +311,33 @@ export default function Dashboard() {
                         <CardContent>
                           <div className="flex flex-col gap-y-5">
                             <div>Options:</div>
-                            {question.options.map((option: any, idx: any) => (
-                              <div key={idx}>
-                                {option.number}: {option.value}
-                              </div>
-                            ))}
-                            <div>Correct option: {question.correctOption}</div>
+                            <RadioGroup value={quizAnswers[`${idx}.question.${question.question}`] || ""} onValueChange={(value) => handleOptionChange(`${idx}.question.${question.question}`, value)}>
+                              {question.options.map((option: any, idx: any) => (
+                                <div key={option.number} className="flex items-center space-x-2">
+                                  <RadioGroupItem value={option.number.toString()} id={`question-${idx + 1}-option-${option.number}`} />
+                                  <Label htmlFor={`question-${idx + 1}-option-${option.number}`}>{option.value}</Label>
+                                </div>
+                              ))}
+                            </RadioGroup>
                           </div>
                         </CardContent>
                       </Card>
                     ))}
+                    {quizScore !== null && (
+                      <div>
+                        You scored {quizScore} / {quiz.quiz.length}
+                      </div>
+                    )}
                   </DialogDescription>
                 </DialogHeader>
+                <DialogFooter>
+                  <Button variant="default" onClick={handleQuizSubmit}>Submit</Button>
+                </DialogFooter>
               </DialogContent>
             </Dialog>
           ))}
         </div>
       </div>
-    </div>
-  )
+    )
+  );
 }

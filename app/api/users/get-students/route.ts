@@ -5,6 +5,7 @@ import UserModel from '@/models/users.model';
 
 export async function GET() {
   await connectToDatabase();
-  const users = await UserModel.find({ role: 'student' });
+  let users = await UserModel.find({ role: 'student' }).select('email -_id');
+
   return NextResponse.json(users);
 }

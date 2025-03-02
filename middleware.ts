@@ -19,7 +19,6 @@ export function middleware(req: NextRequest) {
 
   const token = authHeader.split(" ")[1];
   const user = verifyToken(token);
-  console.log(user);
 
   if (!user || typeof user === "string") {
     return NextResponse.json({ message: "Invalid token" }, { status: 401 });
